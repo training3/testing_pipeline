@@ -1,20 +1,12 @@
-QAemailid = "rchebarthi@west.com"
+QAemailid = "linuxsbk4@gmail.com"
 
-UATemailid= "rchebarthi@west.com"
-
-
+UATemailid= "linuxsbk4@gmail.com"
 
 nugetpath = tool 'nuget-default'
 
-
-
 pipeline{
 
-    agent { node 'win' }
-
-   
-
-    
+    agent { node 'win' }  
 
 stages { 
 
@@ -31,8 +23,6 @@ stages {
     }
 
     }
-
-
 
     stage('Restore Dependency'){
 
@@ -97,9 +87,6 @@ stages {
 
 
           }}}}
-
-	    
-
       
 
     stage ('Nunit test') {
