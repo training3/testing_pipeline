@@ -1,5 +1,4 @@
 pipeline{
-	agent { node 'any' }
 	stages {
 		stage ('Approve to Proceed') {
 				steps {	
