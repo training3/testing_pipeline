@@ -1,8 +1,8 @@
 pipeline{
 	agent { node 'any' }
 	stages {
-		steps {
-		stage ('Approve to Proceed'){	
+		stage ('Approve to Proceed') {
+				steps {	
 //notifydev()
 	 proceedConfirmation("proceed1","promote to QA?")
 }
