@@ -1,11 +1,10 @@
 pipeline{
 	agent any
 	stages {
-		def proceedConfirmation(String id, String message)
-		stage ('Approve to Proceed') 
-		{
-				steps {	
+		stage ('Approve to Proceed'){
+		steps {	
 //notifydev()
+	 def proceedConfirmation(String id, String message)
 	 proceedConfirmation("proceed1","promote to QA?")
 }
 }
