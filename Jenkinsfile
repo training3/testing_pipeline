@@ -1,5 +1,6 @@
 pipeline{
 	stages {
+		agent any
 		stage ('Approve to Proceed') {
 				steps {	
 //notifydev()
