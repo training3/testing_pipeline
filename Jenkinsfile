@@ -27,80 +27,28 @@ stages {
     stage('Restore Dependency'){
         steps{
             script{
-		dir('/var/jenkins_home/') {
-                    sh 'echo hello > testing12'             
-                        }}}}
+                    sh 'echo "Restoring Dependencies" > 1restore_dependency'             
+                        }}}
 
-/*
     stage('Build') {
         steps{
             script{
-    dir('WAMBuild') {
-
-            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:Clean,Build /p:Configuration=Desktop"
-
-            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:BuildSetup /p:Configuration=Desktop"
-
-            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:Clean,Build /p:Configuration=Citrix"
-
-            // rem Call the MSBuild project for Citrix SETUP target..
-            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:CitrixBuildSetup /p:Configuration=Citrix"
-
-          }}}}
+                sh 'echo Build > 2build'
+            }}}
 	    
       
     stage ('Nunit test') {
          steps{
             script{
-     dir('WAMBuild') {
-	    
-	    // rem Build the NUnit test project
-            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:Clean,BuildTestProject /p:Configuration=Release"
-
-            // echo Build completed.
-
-
-            // :End
-           // '''
-
-	   }
-           
+                sh 'echo "Nunit test" > 3nunit'
 	    }}}
 	    
 	stage('SonarQube analysis') {
         steps{
 				script {
-		        		def scannerHome = tool 'SonarQube';
-                                         withSonarQubeEnv('sonarQube') {                                       
-					bat "${scannerHome}/bin/sonar-scanner"
+                    sh 'echo "SonarQube analysis" > 4sonar'
+			}}} 
 
-			}}
-		 }} 
-
-
-    stage('Upload artifacts') {
-        steps{
-			  script {
-				def server = Artifactory.server ('artifacts')
-				def uploadSpec = """{
-				"files": [
-				   {
-				   "pattern": "WAMGateway-Citrix/Citrix/*.msi",
-				   "target": "nuget-local/WAMGateway/dev/${env.BUILD_NUMBER}/"
-				   },
-				   {
-				   "pattern": "WAMGatewaySetup/Desktop/*.msi",
-				   "target": "nuget-local/WAMGateway/dev/${env.BUILD_NUMBER}/"
-				}
-				         ]
-
-			        }"""
-
-				def buildInfo1 = server.upload(uploadSpec)
-
-				server.publishBuildInfo(buildInfo1)
-
-			       }}}
 }
 
     
@@ -124,124 +72,28 @@ stage ('Approve to Proceed'){
 notifydev()
 	 proceedConfirmation("proceed1","promote to QA?")
 }
-node('WCW32983') {
+node {
 	stage ('Promote Artifacts to QA'){
-def server = Artifactory.server 'artifacts'
-
-def uploadSpec  =  """{
-"files": [
- {
-    "pattern": "WAMGateway-citrix/citrix/*.msi",
-    "target": "nuget-local/WAMGateway/QA/${env.BUILD_NUMBER}/"
- },
-
-
-{
-
-
-                                "pattern": "WAMgatewaySetup/Desktop/*.msi",
-
-                                 "target": "nuget-local/WAMGateway/QA/${env.BUILD_NUMBER}/"
-
-
-                                }
-
-
-
-
-
-]
-}"""
-def buildInfo1 = server.upload(uploadSpec)
-				server.publishBuildInfo(buildInfo1)
-			        }
+        sh 'echo "Promote Artifacts to QA" > 5promoteqa'
 		    } 
-
 
 stage ('Approve to Proceed'){
 notifyQA()
 proceedConfirmation("QAtoUAT","Promote to UAT ?")
 }
-agent { node 'win' }
-stage ('Promte Artifacts to UAT'){
-	def server = Artifactory.server 'artifacts'
-	def uploadSpec  =  """{
-
-"files": [
-
- {
-
-    "pattern": "WAMGateway-citrix/citrix/*.msi",
-
-    "target": "nuget-local/WAMGateway/UAT/${env.BUILD_NUMBER}/"
-
- },
-
-{
-
-
-                                "pattern": "WAMGatewaySetup/Desktop/*.msi",
-
-                                 "target": "nuget-local/WAMGateway/UAT/${env.BUILD_NUMBER}/"
-
-
-                                }
-
-
-
-]
-
-}"""
-
-	def buildInfo1 = server.upload(uploadSpec)
-
-	server.publishBuildInfo(buildInfo1)
-
+agent any
+stage ('Promote Artifacts to UAT'){
+	sh 'echo "Promote Artifacts to UAT" > 6promoteUAT'
 	 }
-
-
-//} 
 
 stage ('Approve to Proceed'){
 notifyUAT()
 proceedConfirmation("UATtoProd","Promote to Prod ?")
 }
-agent { node "win" }
+agent any
 stage ('Promte Artifacts to Prod'){
-	def server = Artifactory.server 'artifacts'
-	def uploadSpec  =  """{
-
-"files": [
-
- {
-
-    "pattern": "WAMGateway-citrix/citrix/*.msi",
-
-    "target": "nuget-local/WAMGateway/Prod/${env.BUILD_NUMBER}/"
-
- },
-
-{
-
-
-                                "pattern": "WAMGatewaySetup/Desktop/*.msi",
-
-                                 "target": "nuget-local/WAMGateway/Prod/${env.BUILD_NUMBER}/"
-
-
-                                }
-
-
-
-]
-
-}"""
-
-	def buildInfo1 = server.upload(uploadSpec)
-
-	server.publishBuildInfo(buildInfo1)
-
-	 }
+    sh 'echo "Promote Artifcats to Prod" > 7promotePROD'
+ }
 
 notifySD()
 //} 
@@ -353,9 +205,9 @@ notifySD()
          userInput = false
          echo "Aborted by: [${user}]"
      }
-  } */
+  } 
    
-}}
+ }
 
    
 	
