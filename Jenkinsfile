@@ -1,6 +1,7 @@
 DEVemailid = "linuxsbk4@gmail.com"
 QAemailid = "linuxsbk4@gmail.com"
 UATemailid= "linuxsbk4@gmail.com"
+SDEmailId = "linuxsbk4@gmail.com"
 
 waitingTime = 24
 
