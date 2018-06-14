@@ -192,7 +192,7 @@ stage ('Approve to Proceed'){
 notifyQA()
 proceedConfirmation("QAtoUAT","Promote to UAT ?")
 }
-agent any
+//agent any
 stage ('Promote Artifacts to UAT'){
 	sh 'echo "Promote Artifacts to UAT" > 6promoteUAT'
 	 }
@@ -201,7 +201,7 @@ stage ('Approve to Proceed'){
 notifyUAT()
 proceedConfirmation("UATtoProd","Promote to Prod ?")
 }
-agent any
+//agent any
 stage ('Promte Artifacts to Prod'){
     sh 'echo "Promote Artifcats to Prod" > 7promotePROD'
  }
