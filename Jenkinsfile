@@ -4,14 +4,14 @@ UATemailid= "linuxsbk4@gmail.com"
 
 waitingTime = 24
 
-repositoryName = "WAMGateway"
+repositoryName = "testing_pipeline"
 
 
 // nugetpath = tool 'nuget-default'
 
 def nugetpath
 pipeline{
-    agent { node 'win' }
+    agent any
    
     
 stages { 
@@ -27,21 +27,11 @@ stages {
     stage('Restore Dependency'){
         steps{
             script{
-		dir('WAMBuild') {
-                    bat '''rem ensure the registry setting is present
-                        set "var=%~dp0"
-                        regedit.exe -s %var%msbuild-enable-out-of-proc.reg
-
-                        rem removing the \\packages folder (if present).
-                        rmdir ..\\packages /s /y
-
-                        rem restore nuget
-                        dir
-			nuget.exe restore ..\\wamgateway.sln
-                        '''
-             
+		dir('/var/lib/jenkins/') {
+                    sh 'echo Restoring Dependencies'             
                         }}}}
 
+/*
     stage('Build') {
         steps{
             script{
@@ -363,7 +353,7 @@ notifySD()
          userInput = false
          echo "Aborted by: [${user}]"
      }
-  }
+  } */
    
  }
 
