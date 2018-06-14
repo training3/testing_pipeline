@@ -10,6 +10,117 @@ repositoryName = "testing_pipeline"
 // nugetpath = tool 'nuget-default'
 
 def nugetpath
+
+def notifydev(String buildStatus = 'STARTED') {
+	// build status of null means successful
+	buildStatus =  buildStatus ?: 'SUCCESSFUL'
+	def toList = DEVemailid
+	def subject = "DEV: '${repositoryName}' artifact ready for promotion to QA"
+	def summary = "${subject} (${env.BUILD_URL})"
+	def details = """
+	<p>Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' is ready to be promoted from dev to qa.</p>
+	<p>Click here to move the library into the QA artifactory for testing. "<a href="${env.BUILD_URL}/input">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>
+	"""
+
+	emailext body: details,mimeType: 'text/html', subject: subject, to: toList
+	}
+
+ def notifyQA(String buildStatus = 'SUCCESSFUL') {
+
+	// build status of null means successful
+
+	buildStatus =  buildStatus ?: 'SUCCESSFUL'
+	def toList = QAemailid
+	def subject = "QA: '${repositoryName}' artifact Moved to UAT for Test"
+	def summary = "${subject} (${env.BUILD_URL})"
+	def details = """
+
+	<p>Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' tested successfull in QA and pushed to UAT for Testing.</p>
+	<p> Hello UAT Team,</p>
+	<p> QA team has published artifacts to UAT repository , Please perform Test againest new build </p> 
+	<p> Based on results click on the below link to promte artifacts to Release artifactory or Abort </p>
+        <p> Build approval link. "<a href="${env.BUILD_URL}/input">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>
+
+	"""
+
+	emailext body: details,mimeType: 'text/html', subject: subject, to: toList
+
+	}
+
+
+ def notifyUAT(String buildStatus = 'SUCCESSFUL') {
+
+	// build status of null means successful
+
+	buildStatus =  buildStatus ?: 'SUCCESSFUL'
+	def toList = UATemailid
+	def subject = "UAT: '${repositoryName}' artifact Moved to Prod "
+	def summary = "${subject} (${env.BUILD_URL})"
+	def details = """
+
+	<p>Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' tested successfull in UAT and pushed to Prod .</p>
+	<p> Hello UAT Team,</p>
+	<p> UAT team has published artifacts to Prod repository  </p> 
+	<p> Based on results click on the below link to promte artifacts to Release artifactory or Abort </p>
+        <p> Build approval link. "<a href="${env.BUILD_URL}/input">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>
+
+	"""
+
+	emailext body: details,mimeType: 'text/html', subject: subject, to: toList
+
+	}
+ def notifySD(String buildStatus = 'SUCCESSFUL') {
+	// build status of null means successful
+	buildStatus =  buildStatus ?: 'SUCCESSFUL'
+	def toList = SDEmailId
+	def subject = "SD: '${repositoryName}' artifact ready for promotion to Prod"
+	def summary = "${subject} (${env.BUILD_URL})"
+	def details = """
+	<p>Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' is ready to Deploy to Prod.</p>
+	"""
+
+	emailext body: details,mimeType: 'text/html', subject: subject, to: toList
+	}
+
+
+
+
+    def proceedConfirmation(String id, String message) {	
+    def userInput = true
+    def didTimeout = false
+    try {
+        timeout(time: waitingTime, unit: 'HOURS') { //
+        userInput = input(
+          id: "${id}", message: "${message}", parameters: [
+          [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Confirm to proceed !']
+          ])
+      }
+    } catch(e) { // timeout reached or input false
+        def user = e.getCauses()[0].getUser()
+        if('SYSTEM' == user.toString()) { // SYSTEM means timeout.
+         didTimeout = true
+         if (didTimeout) {
+            echo "no input was received abefore timeout"
+            currentBuild.result = "FAILURE"
+            throw e
+            } else if (userInput == true) {
+                echo "this was successful"
+            } else {
+                userInput = false
+                echo "this was not successful"
+                currentBuild.result = "FAILURE"
+                println("catch exeption. currentBuild.result: ${currentBuild.result}")
+                throw e
+            }
+       } else {
+         userInput = false
+         echo "Aborted by: [${user}]"
+     }
+  } 
+   
+ }
+
+
 pipeline{
     agent any
    
@@ -96,10 +207,11 @@ stage ('Promte Artifacts to Prod'){
  }
 
 notifySD()
-//} 
+} 
 		
 
 
+ /*
  def notifydev(String buildStatus = 'STARTED') {
 	// build status of null means successful
 	buildStatus =  buildStatus ?: 'SUCCESSFUL'
