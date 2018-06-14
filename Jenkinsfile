@@ -166,7 +166,7 @@ stages {
     
 post { 
   success { 
-  					mail to: 'linuxsbk4@gmail.com',
+  	    mail to: "${DEVemailid}",
             subject:  "Suceeded:  ${currentBuild.fullDisplayName}", 
             body: "Build succeeded ${env.BUILD_URL} ${env.JOB_NAME} ${env.BUILD_NUMBER}"   
   				}
