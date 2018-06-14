@@ -27,7 +27,7 @@ stages {
     stage('Restore Dependency'){
         steps{
             script{
-		dir('/var/lib/jenkins/') {
+		dir('/var/jenkins_home/') {
                     sh 'echo Restoring Dependencies'             
                         }}}}
 
