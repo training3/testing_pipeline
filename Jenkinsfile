@@ -28,7 +28,7 @@ stages {
         steps{
             script{
 		dir('/var/jenkins_home/') {
-                    sh 'echo Restoring Dependencies'             
+                    sh 'echo hello > testing12'             
                         }}}}
 
 /*
