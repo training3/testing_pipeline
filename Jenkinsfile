@@ -4,15 +4,16 @@ UATemailid= "linuxsbk4@gmail.com"
 
 waitingTime = 24
 
-repositoryName = "testing_pipeline"
+repositoryName = "WAMGateway"
 
 
 // nugetpath = tool 'nuget-default'
 
 def nugetpath
 pipeline{
-    agent any
-	
+    agent { node 'win' }
+   
+    
 stages { 
     stage('Clone') {
     steps {
@@ -22,12 +23,96 @@ stages {
                     }
     }
     }
-	
+
+    stage('Restore Dependency'){
+        steps{
+            script{
+		dir('WAMBuild') {
+                    bat '''rem ensure the registry setting is present
+                        set "var=%~dp0"
+                        regedit.exe -s %var%msbuild-enable-out-of-proc.reg
+
+                        rem removing the \\packages folder (if present).
+                        rmdir ..\\packages /s /y
+
+                        rem restore nuget
+                        dir
+			nuget.exe restore ..\\wamgateway.sln
+                        '''
+             
+                        }}}}
+
     stage('Build') {
         steps{
             script{
-    sh 'echo hi'
-	    }}}    
+    dir('WAMBuild') {
+
+            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:Clean,Build /p:Configuration=Desktop"
+
+            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:BuildSetup /p:Configuration=Desktop"
+
+            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:Clean,Build /p:Configuration=Citrix"
+
+            // rem Call the MSBuild project for Citrix SETUP target..
+            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:CitrixBuildSetup /p:Configuration=Citrix"
+
+          }}}}
+	    
+      
+    stage ('Nunit test') {
+         steps{
+            script{
+     dir('WAMBuild') {
+	    
+	    // rem Build the NUnit test project
+            bat "\"${tool 'msbuild-default'}/msbuild\" wam.msbuild /t:Clean,BuildTestProject /p:Configuration=Release"
+
+            // echo Build completed.
+
+
+            // :End
+           // '''
+
+	   }
+           
+	    }}}
+	    
+	stage('SonarQube analysis') {
+        steps{
+				script {
+		        		def scannerHome = tool 'SonarQube';
+                                         withSonarQubeEnv('sonarQube') {                                       
+					bat "${scannerHome}/bin/sonar-scanner"
+
+			}}
+		 }} 
+
+
+    stage('Upload artifacts') {
+        steps{
+			  script {
+				def server = Artifactory.server ('artifacts')
+				def uploadSpec = """{
+				"files": [
+				   {
+				   "pattern": "WAMGateway-Citrix/Citrix/*.msi",
+				   "target": "nuget-local/WAMGateway/dev/${env.BUILD_NUMBER}/"
+				   },
+				   {
+				   "pattern": "WAMGatewaySetup/Desktop/*.msi",
+				   "target": "nuget-local/WAMGateway/dev/${env.BUILD_NUMBER}/"
+				}
+				         ]
+
+			        }"""
+
+				def buildInfo1 = server.upload(uploadSpec)
+
+				server.publishBuildInfo(buildInfo1)
+
+			       }}}
+}
+
     
 post { 
   success { 
@@ -41,37 +126,138 @@ post {
             body: "Build failed ${env.BUILD_URL} ${env.JOB_NAME} ${env.BUILD_NUMBER}"
   				} }}
 
+
+
+
  // Stage: promote
 stage ('Approve to Proceed'){	
 notifydev()
 	 proceedConfirmation("proceed1","promote to QA?")
 }
-node('any') {
+node('WCW32983') {
 	stage ('Promote Artifacts to QA'){
-	sh 'echo promoting artficats to QA'
-	            }
+def server = Artifactory.server 'artifacts'
+
+def uploadSpec  =  """{
+"files": [
+ {
+    "pattern": "WAMGateway-citrix/citrix/*.msi",
+    "target": "nuget-local/WAMGateway/QA/${env.BUILD_NUMBER}/"
+ },
+
+
+{
+
+
+                                "pattern": "WAMgatewaySetup/Desktop/*.msi",
+
+                                 "target": "nuget-local/WAMGateway/QA/${env.BUILD_NUMBER}/"
+
+
+                                }
+
+
+
+
+
+]
+}"""
+def buildInfo1 = server.upload(uploadSpec)
+				server.publishBuildInfo(buildInfo1)
+			        }
 		    } 
+
 
 stage ('Approve to Proceed'){
 notifyQA()
 proceedConfirmation("QAtoUAT","Promote to UAT ?")
 }
-agent any
+agent { node 'win' }
 stage ('Promte Artifacts to UAT'){
-	sh 'echo "Promoting artifacts to UAT"'
-}
+	def server = Artifactory.server 'artifacts'
+	def uploadSpec  =  """{
+
+"files": [
+
+ {
+
+    "pattern": "WAMGateway-citrix/citrix/*.msi",
+
+    "target": "nuget-local/WAMGateway/UAT/${env.BUILD_NUMBER}/"
+
+ },
+
+{
+
+
+                                "pattern": "WAMGatewaySetup/Desktop/*.msi",
+
+                                 "target": "nuget-local/WAMGateway/UAT/${env.BUILD_NUMBER}/"
+
+
+                                }
+
+
+
+]
+
+}"""
+
+	def buildInfo1 = server.upload(uploadSpec)
+
+	server.publishBuildInfo(buildInfo1)
+
+	 }
+
+
+//} 
 
 stage ('Approve to Proceed'){
 notifyUAT()
 proceedConfirmation("UATtoProd","Promote to Prod ?")
 }
-agent any
+agent { node "win" }
 stage ('Promte Artifacts to Prod'){
-	sh 'echo "Promoting artifacts to Prod"'
-}
+	def server = Artifactory.server 'artifacts'
+	def uploadSpec  =  """{
+
+"files": [
+
+ {
+
+    "pattern": "WAMGateway-citrix/citrix/*.msi",
+
+    "target": "nuget-local/WAMGateway/Prod/${env.BUILD_NUMBER}/"
+
+ },
+
+{
+
+
+                                "pattern": "WAMGatewaySetup/Desktop/*.msi",
+
+                                 "target": "nuget-local/WAMGateway/Prod/${env.BUILD_NUMBER}/"
+
+
+                                }
+
+
+
+]
+
+}"""
+
+	def buildInfo1 = server.upload(uploadSpec)
+
+	server.publishBuildInfo(buildInfo1)
+
+	 }
 
 notifySD()
-	{
+//} 
+		
+
+
  def notifydev(String buildStatus = 'STARTED') {
 	// build status of null means successful
 	buildStatus =  buildStatus ?: 'SUCCESSFUL'
@@ -84,7 +270,7 @@ notifySD()
 	"""
 
 	emailext body: details,mimeType: 'text/html', subject: subject, to: toList
- } }
+	}
 
  def notifyQA(String buildStatus = 'SUCCESSFUL') {
 
@@ -181,4 +367,5 @@ notifySD()
    
  }
 
-}
+   
+	
