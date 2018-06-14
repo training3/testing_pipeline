@@ -71,7 +71,7 @@ stage ('Promte Artifacts to Prod'){
 }
 
 notifySD()
-	
+	{
  def notifydev(String buildStatus = 'STARTED') {
 	// build status of null means successful
 	buildStatus =  buildStatus ?: 'SUCCESSFUL'
@@ -84,7 +84,7 @@ notifySD()
 	"""
 
 	emailext body: details,mimeType: 'text/html', subject: subject, to: toList
-	}
+ } }
 
  def notifyQA(String buildStatus = 'SUCCESSFUL') {
 
