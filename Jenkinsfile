@@ -1,4 +1,4 @@
-def DEVemailid = ['linuxsbk4@gmail.com'], ['linuxsbk@gmail.com'], ['bsivasub@redhat.com'] 
+def DEVemailid = "linuxsbk4@gmail.com"
 QAemailid = "linuxsbk4@gmail.com"
 UATemailid= "linuxsbk4@gmail.com"
 SDEmailId = "linuxsbk4@gmail.com"
@@ -166,7 +166,7 @@ stages {
     
 post { 
   success { 
-  	    mail to: "${DEVemailid}",
+  	    mail to: "${DEVemailid}", 'linuxsbk@gmail.com', 'bsivasub@redhat.com'
             subject:  "Suceeded:  ${currentBuild.fullDisplayName}", 
             body: "Build succeeded ${env.BUILD_URL} ${env.JOB_NAME} ${env.BUILD_NUMBER}"   
   				}
