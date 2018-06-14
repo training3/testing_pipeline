@@ -1,4 +1,4 @@
-DEVemailid = "linuxsbk4@gmail.com" "linuxsbk@gmail.com" "bsivasub@redhat.com"
+DEVemailid = [ "linuxsbk4@gmail.com" "linuxsbk@gmail.com" "bsivasub@redhat.com" ]
 QAemailid = "linuxsbk4@gmail.com"
 UATemailid= "linuxsbk4@gmail.com"
 SDEmailId = "linuxsbk4@gmail.com"
