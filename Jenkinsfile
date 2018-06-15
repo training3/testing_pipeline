@@ -148,7 +148,12 @@ stages {
                 sh 'echo Build > 2build'
             }}}
 	    
-      
+      stage('Tower') {
+        steps{
+            script{
+ansibleTower credential: '', extraVars: '', importTowerLogs: false, importWorkflowChildLogs: false, inventory: '', jobTags: '', jobTemplate: '5', limit: '', removeColor: false, templateType: 'job', towerServer: 'tower', verbose: false
+            }}}
+	
     stage ('Nunit test') {
          steps{
             script{
