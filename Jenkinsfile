@@ -130,7 +130,9 @@ stages {
     stage('Clone') {
     steps {
         script {
-            checkout scm 
+            checkout scm
+                                repositoryURL = sh(script: 'git config remote.origin.url', returnStdout: true).trim()
+
 	    echo "${repositoryURL}"
                     }
     }
